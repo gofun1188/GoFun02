@@ -53,69 +53,95 @@ src="https://www.facebook.com/tr?id=524853043989985&ev=PageView&noscript=1"
 					<div class="e-con-inner">
 				<div class="elementor-element elementor-element-ec82707 elementor-widget elementor-widget-html" data-id="ec82707" data-element_type="widget" data-widget_type="html.default">
 				<div class="elementor-widget-container">
-					<!-- JavaScript代碼 -->
-<script type="d853294823c731994b858945-text/javascript">
-    // 獲取URL參數的函數
-    function getUrlParameter(name) {
-        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
-        var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-        var results = regex.exec(location.search);
-        return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+					<!-- JavaScript代碼（地區自動切換鏈接） -->
+<script>
+function getUrlParameter(name) {
+    name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+    var regex = new RegExp('[\?&]' + name + '=([^&#]*)');
+    var results = regex.exec(location.search);
+    return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+}
+
+// 获取用户国家（异步）
+function getUserCountry(callback) {
+    fetch('https://ip-api.io/json')
+        .then(response => response.json())
+        .then(data => {
+            callback(data.country_code || '');
+        })
+        .catch(() => {
+            callback('');
+        });
+}
+
+// 统一处理所有链接
+function processAllLinks(targetUrl) {
+    // 获取UTM参数
+    var utm_source = getUrlParameter('utm_source');
+    var utm_medium = getUrlParameter('utm_medium');
+    var utm_campaign = getUrlParameter('utm_campaign');
+    var utmParams = [];
+    if (utm_source) utmParams.push('utm_source=' + utm_source);
+    if (utm_medium) utmParams.push('utm_medium=' + utm_medium);
+    if (utm_campaign) utmParams.push('utm_campaign=' + utm_campaign);
+
+    var finalUrl = targetUrl;
+    if (utmParams.length > 0) {
+        finalUrl += (finalUrl.indexOf('?') === -1 ? '?' : '&') + utmParams.join('&');
     }
 
-    // 在文件加載完成後執行
-    document.addEventListener('DOMContentLoaded', function() {
-        // 獲取UTM參數
-        var utm_source = getUrlParameter('utm_source');
-        var utm_medium = getUrlParameter('utm_medium');
-        var utm_campaign = getUrlParameter('utm_campaign');
-
-        // 獲取所有連結
-        var links = document.querySelectorAll('a[href^="https://97y.me/t4Bge"]');
-
-        // 設置每個連結的新URL
-        links.forEach(function(link) {
-            var newUrl = link.href;
-
-            if (utm_source) newUrl += '&utm_source=' + utm_source;
-            if (utm_medium) newUrl += '&utm_medium=' + utm_medium;
-            if (utm_campaign) newUrl += '&utm_campaign=' + utm_campaign;
-
-            link.setAttribute('href', newUrl);
-        });
+    // 替换所有相关链接
+    var linksToReplace = document.querySelectorAll('a[href*="97y.me"], a[href*="rggo5269.com"]');
+    linksToReplace.forEach(function(link) {
+        // 跳过弹窗关闭按钮和锚点
+        if (link.href.includes('elementor-action') || link.href.startsWith('#')) return;
+        link.href = finalUrl;
+        link.target = '_blank';
     });
-</script>
-<script type="text/javascript">
-    document.addEventListener('DOMContentLoaded', function() {
-        // 獲取所有連結
-        var links = document.querySelectorAll('a[href^="https://rggo5269.com/#/Join?ag=fb002"]');
+
+    // 处理所有图片链接
+    var images = document.querySelectorAll('img');
+    images.forEach(function(img) {
+        var existingLink = img.closest('a');
         
-        // 設置每個連結的新URL
-        links.forEach(function(link) {
-            link.href = "https://97y.me/t4Bge";
-        });
-    });
-</script>
-<script type="d853294823c731994b858945-text/javascript">
-    document.addEventListener('DOMContentLoaded', function() {
-        // 獲取所有圖片元素
-        var images = document.querySelectorAll('img');
-        
-        // 遍歷所有圖片
-        images.forEach(function(img) {
-            // 檢查圖片是否已經在鏈接中
-            if (!img.closest('a')) {
-                // 創建新的鏈接元素
-                var link = document.createElement('a');
-                link.href = 'https://97y.me/t4Bge';
-                link.target = '_blank';
-                
-                // 將圖片包裝在鏈接中
-                img.parentNode.insertBefore(link, img);
-                link.appendChild(img);
+        if (existingLink) {
+            // 如果图片已经在链接中，更新链接地址
+            if (!existingLink.href.includes('elementor-action') && !existingLink.href.startsWith('#')) {
+                existingLink.href = finalUrl;
+                existingLink.target = '_blank';
             }
-        });
+        } else {
+            // 如果图片没有链接，创建新链接
+            var link = document.createElement('a');
+            link.href = finalUrl;
+            link.target = '_blank';
+            img.parentNode.insertBefore(link, img);
+            link.appendChild(img);
+        }
     });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    getUserCountry(function(countryCode) {
+        var url = 'https://97y.me/t4Bge';
+        if (countryCode === 'CN' || countryCode === 'KH') {
+            url = 'https://97y.me/5FhUL';
+        }
+        processAllLinks(url);
+    });
+    // 监听弹窗打开，动态内容也处理
+    document.addEventListener('elementor/popup/show', function() {
+        setTimeout(function() {
+            getUserCountry(function(countryCode) {
+                var url = 'https://97y.me/t4Bge';
+                if (countryCode === 'CN' || countryCode === 'KH') {
+                    url = 'https://97y.me/5FhUL';
+                }
+                processAllLinks(url);
+            });
+        }, 200); // 延迟200ms确保弹窗内容完全加载
+    });
+});
 </script>				</div>
 				</div>
 				<div class="elementor-element elementor-element-2950811 elementor-widget elementor-widget-image" data-id="2950811" data-element_type="widget" data-widget_type="image.default">
@@ -169,7 +195,7 @@ src="https://www.facebook.com/tr?id=524853043989985&ev=PageView&noscript=1"
 		<div class="elementor-element elementor-element-461f265 e-con-full e-flex e-con e-child" data-id="461f265" data-element_type="container" data-settings="{&quot;position&quot;:&quot;absolute&quot;}">
 				<div class="elementor-element elementor-element-ade709b elementor-widget__width-initial elementor-widget elementor-widget-image" data-id="ade709b" data-element_type="widget" data-widget_type="image.default">
 				<div class="elementor-widget-container">
-																<a href="https://rggo5269.com/#/Join?ag=fb002">
+																<a href="https://97y.me/t4Bge">
 							<img decoding="async" width="420" height="71" src="https://toprghot66.com/wp-content/uploads/2023/10/67-06對話框-03.gif" class="attachment-full size-full wp-image-908" alt="" />								</a>
 															</div>
 				</div>
@@ -325,7 +351,7 @@ src="https://www.facebook.com/tr?id=524853043989985&ev=PageView&noscript=1"
 				<div class="elementor-element elementor-element-a2b264c elementor-align-justify elementor-widget__width-initial elementor-absolute e-transform elementor-widget elementor-widget-button" data-id="a2b264c" data-element_type="widget" data-settings="{&quot;_position&quot;:&quot;absolute&quot;,&quot;_transform_scale_effect_hover&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;size&quot;:0.90000000000000002220446049250313080847263336181640625,&quot;sizes&quot;:[]},&quot;_transform_scale_effect_hover_widescreen&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;size&quot;:&quot;&quot;,&quot;sizes&quot;:[]},&quot;_transform_scale_effect_hover_laptop&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;size&quot;:&quot;&quot;,&quot;sizes&quot;:[]},&quot;_transform_scale_effect_hover_tablet&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;size&quot;:&quot;&quot;,&quot;sizes&quot;:[]},&quot;_transform_scale_effect_hover_mobile&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;size&quot;:&quot;&quot;,&quot;sizes&quot;:[]}}" data-widget_type="button.default">
 				<div class="elementor-widget-container">
 									<div class="elementor-button-wrapper">
-					<a class="elementor-button elementor-button-link elementor-size-sm" href="https://rggo5269.com/#/Join?ag=fb002" target="_blank">
+					<a class="elementor-button elementor-button-link elementor-size-sm" href="https://97y.me/t4Bge" target="_blank">
 						<span class="elementor-button-content-wrapper">
 									<span class="elementor-button-text">點擊這裡</span>
 					</span>
@@ -357,7 +383,7 @@ src="https://www.facebook.com/tr?id=524853043989985&ev=PageView&noscript=1"
 				<div class="elementor-element elementor-element-a2b264c elementor-align-justify elementor-widget__width-initial elementor-absolute e-transform elementor-widget elementor-widget-button" data-id="a2b264c" data-element_type="widget" data-settings="{&quot;_position&quot;:&quot;absolute&quot;,&quot;_transform_scale_effect_hover&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;size&quot;:0.90000000000000002220446049250313080847263336181640625,&quot;sizes&quot;:[]},&quot;_transform_scale_effect_hover_widescreen&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;size&quot;:&quot;&quot;,&quot;sizes&quot;:[]},&quot;_transform_scale_effect_hover_laptop&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;size&quot;:&quot;&quot;,&quot;sizes&quot;:[]},&quot;_transform_scale_effect_hover_tablet&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;size&quot;:&quot;&quot;,&quot;sizes&quot;:[]},&quot;_transform_scale_effect_hover_mobile&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;size&quot;:&quot;&quot;,&quot;sizes&quot;:[]}}" data-widget_type="button.default">
 				<div class="elementor-widget-container">
 									<div class="elementor-button-wrapper">
-					<a class="elementor-button elementor-button-link elementor-size-sm" href="https://rggo5269.com/#/Join?ag=fb002" target="_blank">
+					<a class="elementor-button elementor-button-link elementor-size-sm" href="https://97y.me/t4Bge" target="_blank">
 						<span class="elementor-button-content-wrapper">
 									<span class="elementor-button-text">點擊這裡</span>
 					</span>
@@ -389,7 +415,7 @@ src="https://www.facebook.com/tr?id=524853043989985&ev=PageView&noscript=1"
 				<div class="elementor-element elementor-element-a2b264c elementor-align-justify elementor-widget__width-initial elementor-absolute e-transform elementor-widget elementor-widget-button" data-id="a2b264c" data-element_type="widget" data-settings="{&quot;_position&quot;:&quot;absolute&quot;,&quot;_transform_scale_effect_hover&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;size&quot;:0.90000000000000002220446049250313080847263336181640625,&quot;sizes&quot;:[]},&quot;_transform_scale_effect_hover_widescreen&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;size&quot;:&quot;&quot;,&quot;sizes&quot;:[]},&quot;_transform_scale_effect_hover_laptop&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;size&quot;:&quot;&quot;,&quot;sizes&quot;:[]},&quot;_transform_scale_effect_hover_tablet&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;size&quot;:&quot;&quot;,&quot;sizes&quot;:[]},&quot;_transform_scale_effect_hover_mobile&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;size&quot;:&quot;&quot;,&quot;sizes&quot;:[]}}" data-widget_type="button.default">
 				<div class="elementor-widget-container">
 									<div class="elementor-button-wrapper">
-					<a class="elementor-button elementor-button-link elementor-size-sm" href="https://rggo5269.com/#/Join?ag=fb002" target="_blank">
+					<a class="elementor-button elementor-button-link elementor-size-sm" href="https://97y.me/t4Bge" target="_blank">
 						<span class="elementor-button-content-wrapper">
 									<span class="elementor-button-text">點擊這裡</span>
 					</span>
@@ -421,7 +447,7 @@ src="https://www.facebook.com/tr?id=524853043989985&ev=PageView&noscript=1"
 				<div class="elementor-element elementor-element-a2b264c elementor-align-justify elementor-widget__width-initial elementor-absolute e-transform elementor-widget elementor-widget-button" data-id="a2b264c" data-element_type="widget" data-settings="{&quot;_position&quot;:&quot;absolute&quot;,&quot;_transform_scale_effect_hover&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;size&quot;:0.90000000000000002220446049250313080847263336181640625,&quot;sizes&quot;:[]},&quot;_transform_scale_effect_hover_widescreen&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;size&quot;:&quot;&quot;,&quot;sizes&quot;:[]},&quot;_transform_scale_effect_hover_laptop&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;size&quot;:&quot;&quot;,&quot;sizes&quot;:[]},&quot;_transform_scale_effect_hover_tablet&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;size&quot;:&quot;&quot;,&quot;sizes&quot;:[]},&quot;_transform_scale_effect_hover_mobile&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;size&quot;:&quot;&quot;,&quot;sizes&quot;:[]}}" data-widget_type="button.default">
 				<div class="elementor-widget-container">
 									<div class="elementor-button-wrapper">
-					<a class="elementor-button elementor-button-link elementor-size-sm" href="https://rggo5269.com/#/Join?ag=fb002" target="_blank">
+					<a class="elementor-button elementor-button-link elementor-size-sm" href="https://97y.me/t4Bge" target="_blank">
 						<span class="elementor-button-content-wrapper">
 									<span class="elementor-button-text">點擊這裡</span>
 					</span>
